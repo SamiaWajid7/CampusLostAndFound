@@ -70,29 +70,27 @@ public class AdminController : Controller
         
         return View(claim);
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Route("Claims/{id:int}/Review")]
     public async Task<IActionResult> ReviewClaim(int id, ReviewClaimDto model)
     {
         var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         if (string.IsNullOrEmpty(adminUserId))
-        {
             return RedirectToAction("Login", "Account");
-        }
-        
+
         var result = await _claimService.ReviewClaimAsync(id, model, adminUserId);
-        
+
         if (result == null)
-        {
             return NotFound();
-        }
-        
-        TempData["SuccessMessage"] = $"Claim has been {model.Status.ToString().ToLower()}.";
+
+        TempData["SuccessMessage"] =
+            $"Claim has been {model.Status.ToString().ToLower()}.";
+
         return RedirectToAction("Claims");
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("Items/{id:int}/Verify")]

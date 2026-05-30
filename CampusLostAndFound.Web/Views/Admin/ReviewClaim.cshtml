@@ -135,21 +135,24 @@
                         <h5 class="mb-0">Review Decision</h5>
                     </div>
                     <div class="card-body">
-                        <form asp-action="ReviewClaim" asp-route-id="@Model.Id" method="post">
-                            <div class="mb-3">
-                                <label class="form-label">Admin Notes</label>
-                                <textarea name="AdminNotes" class="form-control" rows="3" placeholder="Add any notes about your decision..."></textarea>
-                            </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" name="Status" value="@((int)ClaimStatus.Approved)" class="btn btn-success">
-                                    <i class="bi bi-check-circle me-1"></i>Approve Claim
-                                </button>
-                                <button type="submit" name="Status" value="@((int)ClaimStatus.Rejected)" class="btn btn-danger">
-                                    <i class="bi bi-x-circle me-1"></i>Reject Claim
-                                </button>
-                            </div>
-                        </form>
+                           <form asp-controller="Admin"
+      asp-action="ReviewClaim"
+      asp-route-id="@Model.Id"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <textarea name="AdminNotes" class="form-control"></textarea>
+
+    <button type="submit" name="Status" value="1" class="btn btn-success">
+        Approve
+    </button>
+
+    <button type="submit" name="Status" value="2" class="btn btn-danger">
+        Reject
+    </button>
+
+</form>
                         
                         <hr>
                         <small class="text-muted">
