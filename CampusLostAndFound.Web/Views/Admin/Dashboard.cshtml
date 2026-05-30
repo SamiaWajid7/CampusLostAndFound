@@ -1,0 +1,145 @@
+@model DashboardStatsDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-md-2">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.TotalLostItems</h2>
+                    <p class="mb-0 small">Lost Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.TotalFoundItems</h2>
+                    <p class="mb-0 small">Found Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.OpenItems</h2>
+                    <p class="mb-0 small">Open Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.ReturnedItems</h2>
+                    <p class="mb-0 small">Returned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.PendingClaims</h2>
+                    <p class="mb-0 small">Pending Claims</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h2 class="mb-0">@Model.TotalUsers</h2>
+                    <p class="mb-0 small">Total Users</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Items by Category</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-center">Lost</th>
+                                <th class="text-center">Found</th>
+                                <th class="text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stat in Model.CategoryStats)
+                            {
+                                <tr>
+                                    <td>@stat.CategoryName</td>
+                                    <td class="text-center"><span class="badge bg-danger">@stat.LostCount</span></td>
+                                    <td class="text-center"><span class="badge bg-success">@stat.FoundCount</span></td>
+                                    <td class="text-center"><strong>@(stat.LostCount + stat.FoundCount)</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentActivity.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var activity in Model.RecentActivity)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <span class="badge @(activity.Action.Contains("Lost") ? "bg-danger" : activity.Action.Contains("Found") ? "bg-success" : "bg-primary") me-2">
+                                            @activity.Action
+                                        </span>
+                                        <a asp-controller="Items" asp-action="Details" asp-route-id="@activity.ItemId">@activity.ItemTitle</a>
+                                        <small class="text-muted d-block">by @activity.UserName</small>
+                                    </div>
+                                    <small class="text-muted">@activity.Timestamp.ToString("MMM dd, h:mm tt")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4">No recent activity</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a asp-controller="Admin" asp-action="Claims" class="btn btn-warning">
+                            <i class="bi bi-hand-index me-1"></i>Review Claims (@Model.PendingClaims pending)
+                        </a>
+                        <a asp-controller="Admin" asp-action="Items" class="btn btn-primary">
+                            <i class="bi bi-list-ul me-1"></i>Manage Items
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

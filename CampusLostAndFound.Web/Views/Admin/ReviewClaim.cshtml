@@ -1,0 +1,196 @@
+@model ClaimDto
+@{
+    ViewData["Title"] = "Review Claim";
+    Layout = "_AdminLayout";
+    var item = ViewData["Item"] as ItemDto;
+    var allClaims = ViewData["AllClaims"] as List<ClaimDto> ?? new List<ClaimDto>();
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Claims">Claims</a></li>
+            <li class="breadcrumb-item active">Review Claim #@Model.Id</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Claim Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Claim ID</dt>
+                        <dd class="col-sm-9">#@Model.Id</dd>
+                        
+                        <dt class="col-sm-3">Status</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(Model.Status == ClaimStatus.Pending ? "bg-warning text-dark" : Model.Status == ClaimStatus.Approved ? "bg-success" : "bg-secondary")">
+                                @Model.StatusName
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-3">Claimant</dt>
+                        <dd class="col-sm-9">
+                            <strong>@Model.ClaimantName</strong>
+                            <br><small class="text-muted">@Model.ClaimantEmail</small>
+                        </dd>
+                        
+                        <dt class="col-sm-3">Submitted</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("MMMM dd, yyyy h:mm tt")</dd>
+                        
+                        <dt class="col-sm-3">Description</dt>
+                        <dd class="col-sm-9">@Model.Description</dd>
+                        
+                        @if (!string.IsNullOrEmpty(Model.ProofDescription))
+                        {
+                            <dt class="col-sm-3">Proof / Details</dt>
+                            <dd class="col-sm-9">@Model.ProofDescription</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+            
+            @if (item != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Item Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if (item.Images.Any())
+                            {
+                                <div class="col-md-4">
+                                    <img src="@item.Images.First().FilePath" alt="@item.Title" class="img-fluid rounded">
+                                </div>
+                            }
+                            <div class="@(item.Images.Any() ? "col-md-8" : "col-12")">
+                                <h4>
+                                    <span class="badge @(item.ItemType == ItemType.Lost ? "bg-danger" : "bg-success") me-2">@item.ItemType</span>
+                                    @item.Title
+                                </h4>
+                                <p class="text-muted">@item.Description</p>
+                                
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Category</dt>
+                                    <dd class="col-sm-8">@item.CategoryName</dd>
+                                    
+                                    <dt class="col-sm-4">Location</dt>
+                                    <dd class="col-sm-8">@item.LocationName</dd>
+                                    
+                                    <dt class="col-sm-4">Date</dt>
+                                    <dd class="col-sm-8">@item.DateOccurred.ToString("MMM dd, yyyy")</dd>
+                                    
+                                    <dt class="col-sm-4">Reported By</dt>
+                                    <dd class="col-sm-8">@item.ReportedByName</dd>
+                                </dl>
+                                
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm mt-3" target="_blank">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>View Full Item
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            @if (allClaims.Count > 1)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Other Claims for This Item (@(allClaims.Count - 1) others)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            @foreach (var otherClaim in allClaims.Where(c => c.Id != Model.Id))
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>@otherClaim.ClaimantName</strong>
+                                            <span class="badge @(otherClaim.Status == ClaimStatus.Pending ? "bg-warning text-dark" : otherClaim.Status == ClaimStatus.Approved ? "bg-success" : "bg-secondary") ms-2">
+                                                @otherClaim.StatusName
+                                            </span>
+                                        </div>
+                                        <small class="text-muted">@otherClaim.CreatedAt.ToString("MMM dd")</small>
+                                    </div>
+                                    <p class="text-muted small mb-0 mt-1">@otherClaim.Description.Substring(0, Math.Min(100, otherClaim.Description.Length))...</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="col-lg-4">
+            @if (Model.Status == ClaimStatus.Pending)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Review Decision</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="ReviewClaim" asp-route-id="@Model.Id" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Admin Notes</label>
+                                <textarea name="AdminNotes" class="form-control" rows="3" placeholder="Add any notes about your decision..."></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" name="Status" value="@((int)ClaimStatus.Approved)" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>Approve Claim
+                                </button>
+                                <button type="submit" name="Status" value="@((int)ClaimStatus.Rejected)" class="btn btn-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Reject Claim
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <hr>
+                        <small class="text-muted">
+                            <strong>Note:</strong> Approving this claim will automatically reject all other pending claims for this item and mark the item as claimed.
+                        </small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Review Complete</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>This claim has already been reviewed.</p>
+                        <dl>
+                            <dt>Status</dt>
+                            <dd><span class="badge @(Model.Status == ClaimStatus.Approved ? "bg-success" : "bg-danger")">@Model.StatusName</span></dd>
+                            
+                            @if (!string.IsNullOrEmpty(Model.ReviewedByName))
+                            {
+                                <dt>Reviewed By</dt>
+                                <dd>@Model.ReviewedByName</dd>
+                            }
+                            
+                            @if (Model.DateReviewed.HasValue)
+                            {
+                                <dt>Review Date</dt>
+                                <dd>@Model.DateReviewed.Value.ToString("MMM dd, yyyy h:mm tt")</dd>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+                            {
+                                <dt>Admin Notes</dt>
+                                <dd>@Model.AdminNotes</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,114 @@
+@model CampusLostAndFound.Web.Models.DTOs.PagedResultDto<CampusLostAndFound.Web.Models.DTOs.ItemListDto>
+@{
+    ViewData["Title"] = "Manage Items";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Items</h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select name="ItemType" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="0">Lost</option>
+                    <option value="1">Found</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="Status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="0">Open</option>
+                    <option value="1">Claimed</option>
+                    <option value="2">Returned</option>
+                    <option value="3">Expired</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="SearchTerm" class="form-control" placeholder="Search items...">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(item.PrimaryImagePath))
+                                {
+                                    <img src="@item.PrimaryImagePath" alt="@item.Title" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                }
+                                <span>@item.Title</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge @(item.ItemType == CampusLostAndFound.Web.Models.Enums.ItemType.Lost ? "bg-danger" : "bg-success")">
+                                @item.ItemType
+                            </span>
+                        </td>
+                        <td>@item.CategoryName</td>
+                        <td>@item.LocationName</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case CampusLostAndFound.Web.Models.Enums.ItemStatus.Open:
+                                    <span class="badge bg-primary">Open</span>
+                                    break;
+                                case CampusLostAndFound.Web.Models.Enums.ItemStatus.Claimed:
+                                    <span class="badge bg-warning text-dark">Claimed</span>
+                                    break;
+                                case CampusLostAndFound.Web.Models.Enums.ItemStatus.Returned:
+                                    <span class="badge bg-success">Returned</span>
+                                    break;
+                                case CampusLostAndFound.Web.Models.Enums.ItemStatus.Expired:
+                                    <span class="badge bg-dark">Expired</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@item.DateOccurred.ToString("MMM dd")</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form asp-controller="Admin" asp-action="MarkItemReturned" asp-route-id="@item.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-success" title="Mark Returned">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

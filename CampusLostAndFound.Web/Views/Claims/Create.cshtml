@@ -1,0 +1,60 @@
+@model CampusLostAndFound.Web.Models.DTOs.CreateClaimDto
+@{
+    ViewData["Title"] = "Submit Claim";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Items" asp-action="Index">Items</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Items" asp-action="Details" asp-route-id="@Model.ItemId">Item Details</a></li>
+                    <li class="breadcrumb-item active">Submit Claim</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Submit a Claim</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Please provide as much detail as possible to help verify your ownership. Include specific features, when/where you lost it, and any identifying marks.
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" asp-for="ItemId" />
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Describe why this item belongs to you <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control" rows="5" placeholder="Provide details that prove ownership: unique features, contents, when/where you lost it, etc."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ContactInfo" class="form-label">Contact Information</label>
+                            <input asp-for="ContactInfo" class="form-control" placeholder="Phone number or preferred contact method" />
+                            <div class="form-text">Optional: How should we contact you about this claim?</div>
+                            <span asp-validation-for="ContactInfo" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>Submit Claim
+                            </button>
+                            <a asp-controller="Items" asp-action="Details" asp-route-id="@Model.ItemId" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

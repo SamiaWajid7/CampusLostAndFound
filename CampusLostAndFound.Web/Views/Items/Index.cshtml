@@ -1,0 +1,204 @@
+@model PagedResultDto<ItemListDto>
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "All Items";
+    var categories = ViewData["Categories"] as List<CategoryDto> ?? new List<CategoryDto>();
+    var locations = ViewData["Locations"] as List<LocationDto> ?? new List<LocationDto>();
+    var search = ViewData["Search"] as ItemSearchDto ?? new ItemSearchDto();
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <div>
+            <a asp-controller="Items" asp-action="Create" asp-route-type="Lost" class="btn btn-danger me-2">
+                <i class="bi bi-plus-lg me-1"></i>Report Lost
+            </a>
+            <a asp-controller="Items" asp-action="Create" asp-route-type="Found" class="btn btn-success">
+                <i class="bi bi-plus-lg me-1"></i>Report Found
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="filter-sidebar">
+                <h5 class="mb-3">Filters</h5>
+                <form asp-controller="Items" asp-action="Index" method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="SearchTerm" class="form-control" value="@search.SearchTerm" placeholder="Search items...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select name="ItemType" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="0" selected="@(search.ItemType == ItemType.Lost)">Lost</option>
+                            <option value="1" selected="@(search.ItemType == ItemType.Found)">Found</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="CategoryId" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id" selected="@(search.CategoryId == cat.Id)">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <select name="LocationId" class="form-select">
+                            <option value="">All Locations</option>
+                            @foreach (var loc in locations)
+                            {
+                                <option value="@loc.Id" selected="@(search.LocationId == loc.Id)">@loc.Name</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="Status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="0" selected="@(search.Status == ItemStatus.Open)">Open</option>
+                            <option value="1" selected="@(search.Status == ItemStatus.Claimed)">Claimed</option>
+                            <option value="2" selected="@(search.Status == ItemStatus.Returned)">Returned</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date From</label>
+                        <input type="date" name="DateFrom" class="form-control" value="@search.DateFrom?.ToString("yyyy-MM-dd")">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date To</label>
+                        <input type="date" name="DateTo" class="form-control" value="@search.DateTo?.ToString("yyyy-MM-dd")">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Apply Filters
+                    </button>
+                    
+                    <a asp-controller="Items" asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                        Clear Filters
+                    </a>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="text-muted mb-0">
+                    Showing @((search.Page - 1) * search.PageSize + 1)-@Math.Min(search.Page * search.PageSize, Model.TotalCount) of @Model.TotalCount results
+                </p>
+                <div class="d-flex align-items-center">
+                    <label class="me-2">Sort by:</label>
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="updateSort(this.value)">
+                        <option value="CreatedAt" selected="@(search.SortBy == "CreatedAt")">Newest First</option>
+                        <option value="DateOccurred" selected="@(search.SortBy == "DateOccurred")">Date Occurred</option>
+                        <option value="Title" selected="@(search.SortBy == "Title")">Title</option>
+                    </select>
+                </div>
+            </div>
+            
+            @if (Model.Items.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card item-card h-100">
+                                @if (!string.IsNullOrEmpty(item.PrimaryImagePath))
+                                {
+                                    <img src="@item.PrimaryImagePath" alt="@item.Title" class="item-image">
+                                }
+                                else
+                                {
+                                    <div class="item-placeholder">
+                                        <i class="bi @item.CategoryIcon"></i>
+                                    </div>
+                                }
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge @(item.ItemType == ItemType.Lost ? "badge-lost" : "badge-found")">
+                                            @item.ItemType.ToString()
+                                        </span>
+                                        <div>
+                                            @if (item.IsVerified)
+                                            {
+                                                <i class="bi bi-patch-check-fill verified-badge me-1" title="Verified"></i>
+                                            }
+                                            <span class="badge bg-secondary">@item.Status.ToString()</span>
+                                        </div>
+                                    </div>
+                                    <h5 class="card-title">@item.Title</h5>
+                                    <p class="card-text text-muted small mb-1">
+                                        <i class="bi bi-tag me-1"></i>@item.CategoryName
+                                    </p>
+                                    <p class="card-text text-muted small mb-1">
+                                        <i class="bi bi-geo-alt me-1"></i>@item.LocationName
+                                    </p>
+                                    <p class="card-text text-muted small">
+                                        <i class="bi bi-calendar me-1"></i>@item.DateOccurred.ToString("MMM dd, yyyy")
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link" asp-route-Page="@(search.Page - 1)" asp-route-SearchTerm="@search.SearchTerm" asp-route-CategoryId="@search.CategoryId" asp-route-LocationId="@search.LocationId" asp-route-ItemType="@search.ItemType" asp-route-Status="@search.Status">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == search.Page ? "active" : "")">
+                                    <a class="page-link" asp-route-Page="@i" asp-route-SearchTerm="@search.SearchTerm" asp-route-CategoryId="@search.CategoryId" asp-route-LocationId="@search.LocationId" asp-route-ItemType="@search.ItemType" asp-route-Status="@search.Status">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                                <a class="page-link" asp-route-Page="@(search.Page + 1)" asp-route-SearchTerm="@search.SearchTerm" asp-route-CategoryId="@search.CategoryId" asp-route-LocationId="@search.LocationId" asp-route-ItemType="@search.ItemType" asp-route-Status="@search.Status">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-search fs-1 text-muted"></i>
+                    <h4 class="mt-3">No items found</h4>
+                    <p class="text-muted">Try adjusting your filters or search terms.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function updateSort(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('SortBy', value);
+        window.location.href = url.toString();
+    }
+</script>
+}

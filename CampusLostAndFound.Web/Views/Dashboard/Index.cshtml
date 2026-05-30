@@ -1,0 +1,166 @@
+@model UserDashboardDto
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">My Dashboard</h1>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">@Model.MyLostItems</h3>
+                            <p class="mb-0">Lost Items</p>
+                        </div>
+                        <i class="bi bi-exclamation-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+                <a asp-controller="Items" asp-action="Lost" class="card-footer text-white text-decoration-none d-flex justify-content-between align-items-center">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">@Model.MyFoundItems</h3>
+                            <p class="mb-0">Found Items</p>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+                <a asp-controller="Items" asp-action="Found" class="card-footer text-white text-decoration-none d-flex justify-content-between align-items-center">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">@Model.MyClaims</h3>
+                            <p class="mb-0">My Claims</p>
+                        </div>
+                        <i class="bi bi-hand-index fs-1 opacity-50"></i>
+                    </div>
+                </div>
+                <a asp-controller="Claims" asp-action="Index" class="card-footer text-white text-decoration-none d-flex justify-content-between align-items-center">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">@Model.UnreadNotifications</h3>
+                            <p class="mb-0">Notifications</p>
+                        </div>
+                        <i class="bi bi-bell fs-1 opacity-50"></i>
+                    </div>
+                </div>
+                <a asp-controller="Dashboard" asp-action="Notifications" class="card-footer text-dark text-decoration-none d-flex justify-content-between align-items-center">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">My Recent Items</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-plus-lg me-1"></i>Report
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" asp-controller="Items" asp-action="Create" asp-route-type="Lost">
+                                <i class="bi bi-exclamation-circle me-2 text-danger"></i>Lost Item
+                            </a></li>
+                            <li><a class="dropdown-item" asp-controller="Items" asp-action="Create" asp-route-type="Found">
+                                <i class="bi bi-check-circle me-2 text-success"></i>Found Item
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentItems.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.RecentItems)
+                            {
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge @(item.ItemType == ItemType.Lost ? "badge-lost" : "badge-found") me-2">
+                                                @item.ItemType
+                                            </span>
+                                            <strong>@item.Title</strong>
+                                        </div>
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    </div>
+                                    <small class="text-muted">@item.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox fs-1 text-muted"></i>
+                            <p class="text-muted mt-2">No items reported yet</p>
+                            <a asp-controller="Items" asp-action="Create" class="btn btn-primary btn-sm">Report an Item</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">My Recent Claims</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentClaims.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var claim in Model.RecentClaims)
+                            {
+                                <a asp-controller="Claims" asp-action="Details" asp-route-id="@claim.Id" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>@claim.ItemTitle</strong>
+                                        <span class="badge @(claim.Status == ClaimStatus.Pending ? "bg-warning text-dark" : claim.Status == ClaimStatus.Approved ? "bg-success" : "bg-secondary")">
+                                            @claim.StatusName
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">Submitted @claim.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-hand-index fs-1 text-muted"></i>
+                            <p class="text-muted mt-2">No claims submitted yet</p>
+                            <a asp-controller="Items" asp-action="Index" class="btn btn-primary btn-sm">Browse Items</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

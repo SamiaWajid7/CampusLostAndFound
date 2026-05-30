@@ -1,0 +1,192 @@
+@using System.Security.Claims
+@model ItemDto
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Items" asp-action="Index">Items</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Items" asp-action="@(Model.ItemType == ItemType.Lost ? "Lost" : "Found")">@Model.ItemType Items</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge @(Model.ItemType == ItemType.Lost ? "badge-lost" : "badge-found") fs-6 mb-2">
+                                @Model.ItemType.ToString() Item
+                            </span>
+                            @if (Model.IsVerified)
+                            {
+                                <span class="badge bg-success fs-6 mb-2 ms-2">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Verified
+                                </span>
+                            }
+                            <span class="badge bg-secondary fs-6 mb-2 ms-2">@Model.StatusName</span>
+                        </div>
+                        @if (User.Identity?.IsAuthenticated == true && Model.ReportedByUserId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
+                        {
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <form asp-controller="Items" asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-trash me-2"></i>Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                    
+                    <h1 class="h2 mb-3">@Model.Title</h1>
+                    
+                    @if (Model.Images.Any())
+                    {
+                        <div id="itemCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @foreach (var (image, index) in Model.Images.Select((img, i) => (img, i)))
+                                {
+                                    <div class="carousel-item @(index == 0 ? "active" : "")">
+                                        <img src="@image.FilePath" class="d-block w-100 rounded" alt="@Model.Title" style="max-height: 400px; object-fit: contain; background: #f1f5f9;">
+                                    </div>
+                                }
+                            </div>
+                            @if (Model.Images.Count > 1)
+                            {
+                                <button class="carousel-control-prev" type="button" data-bs-target="#itemCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-3"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#itemCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon bg-dark rounded-circle p-3"></span>
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center mb-4" style="height: 300px;">
+                            <i class="bi @Model.CategoryIcon display-1 text-muted"></i>
+                        </div>
+                    }
+                    
+                    <h5>Description</h5>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Item Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Category</dt>
+                        <dd class="col-sm-7">
+                            <i class="bi @Model.CategoryIcon me-1"></i>@Model.CategoryName
+                        </dd>
+                        
+                        <dt class="col-sm-5 text-muted">Location</dt>
+                        <dd class="col-sm-7">@Model.LocationName</dd>
+                        
+                        @if (!string.IsNullOrEmpty(Model.LocationDetails))
+                        {
+                            <dt class="col-sm-5 text-muted">Details</dt>
+                            <dd class="col-sm-7">@Model.LocationDetails</dd>
+                        }
+                        
+                        <dt class="col-sm-5 text-muted">Date @(Model.ItemType == ItemType.Lost ? "Lost" : "Found")</dt>
+                        <dd class="col-sm-7">@Model.DateOccurred.ToString("MMMM dd, yyyy")</dd>
+                        
+                        <dt class="col-sm-5 text-muted">Reported</dt>
+                        <dd class="col-sm-7">@Model.CreatedAt.ToString("MMM dd, yyyy")</dd>
+                        
+                        <dt class="col-sm-5 text-muted">Views</dt>
+                        <dd class="col-sm-7">@Model.ViewCount</dd>
+                        
+                        <dt class="col-sm-5 text-muted">Claims</dt>
+                        <dd class="col-sm-7">@Model.ClaimCount</dd>
+                    </dl>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person me-2"></i>Reported By</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="bi bi-person fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">@Model.ReportedByName</h6>
+                            <small class="text-muted">Campus Member</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            @if (User.Identity?.IsAuthenticated == true && Model.Status == ItemStatus.Open)
+            {
+                var currentUserId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+                @if (currentUserId != Model.ReportedByUserId)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                @if (Model.ItemType == ItemType.Lost)
+                                {
+                                    <text>Found this item?</text>
+                                }
+                                else
+                                {
+                                    <text>Is this yours?</text>
+                                }
+                            </h5>
+                            <p class="card-text text-muted small">
+                                @if (Model.ItemType == ItemType.Lost)
+                                {
+                                    <text>If you have found this item, submit a claim to help return it to the owner.</text>
+                                }
+                                else
+                                {
+                                    <text>If this is your item, submit a claim with proof of ownership.</text>
+                                }
+                            </p>
+                            <a asp-controller="Claims" asp-action="Create" asp-route-itemId="@Model.Id" class="btn btn-primary w-100">
+                                <i class="bi bi-hand-index me-1"></i>Submit a Claim
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else if (!User.Identity?.IsAuthenticated == true && Model.Status == ItemStatus.Open)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Claim this item</h5>
+                        <p class="card-text text-muted small">
+                            Please login or register to submit a claim for this item.
+                        </p>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Items", new { id = Model.Id })" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login to Claim
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

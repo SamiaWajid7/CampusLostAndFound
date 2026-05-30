@@ -1,0 +1,53 @@
+﻿@model CampusLostAndFound.Web.Models.DTOs.UserDto
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">My Profile</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="mb-3">
+                <h5>@Model.FullName</h5>
+            </div>
+
+            <hr />
+
+            <p>
+                <strong>Email:</strong>
+                @Model.Email
+            </p>
+
+            <p>
+                <strong>Student ID:</strong>
+                @(string.IsNullOrEmpty(Model.StudentId) ? "Not Provided" : Model.StudentId)
+            </p>
+
+            <p>
+                <strong>Department:</strong>
+                @(string.IsNullOrEmpty(Model.Department) ? "Not Provided" : Model.Department)
+            </p>
+
+            <p>
+                <strong>Joined:</strong>
+                @Model.CreatedAt.ToString("MMMM dd, yyyy")
+            </p>
+
+            @if (Model.Roles.Any())
+            {
+                <p>
+                    <strong>Roles:</strong>
+
+                    @foreach (var role in Model.Roles)
+                    {
+                        <span class="badge bg-primary me-1">@role</span>
+                    }
+                </p>
+            }
+
+        </div>
+    </div>
+</div>

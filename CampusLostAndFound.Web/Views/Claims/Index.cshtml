@@ -1,0 +1,74 @@
+@model List<CampusLostAndFound.Web.Models.DTOs.ClaimDto>
+@{
+    ViewData["Title"] = "My Claims";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">My Claims</h1>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            You haven't submitted any claims yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Item</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var claim in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@claim.ItemId">
+                                    @claim.ItemTitle
+                                </a>
+                            </td>
+                            <td>
+                                @if (claim.Description.Length > 50)
+                                {
+                                    @claim.Description.Substring(0, 50)<text>...</text>
+                                }
+                                else
+                                {
+                                    @claim.Description
+                                }
+                            </td>
+                            <td>
+                                @switch (claim.Status)
+                                {
+                                    case CampusLostAndFound.Web.Models.Enums.ClaimStatus.Pending:
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        break;
+                                    case CampusLostAndFound.Web.Models.Enums.ClaimStatus.Approved:
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+                                    case CampusLostAndFound.Web.Models.Enums.ClaimStatus.Rejected:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@claim.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@claim.Id" class="btn btn-sm btn-outline-primary">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

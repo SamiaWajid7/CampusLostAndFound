@@ -1,0 +1,188 @@
+@model List<ItemListDto>
+@{
+    ViewData["Title"] = "Home";
+    var categories = ViewData["Categories"] as List<CategoryDto> ?? new List<CategoryDto>();
+}
+
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">Campus Lost &amp; Found</h1>
+        <p class="lead mb-4">Lost something on campus? Found an item? We help connect people with their belongings.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a asp-controller="Items" asp-action="Create" asp-route-type="Lost" class="btn btn-light btn-lg">
+                <i class="bi bi-exclamation-circle me-2"></i>Report Lost Item
+            </a>
+            <a asp-controller="Items" asp-action="Create" asp-route-type="Found" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-check-circle me-2"></i>Report Found Item
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="icon"><i class="bi bi-exclamation-circle"></i></div>
+                    <div class="number">@categories.Sum(c => c.ItemCount)</div>
+                    <div class="text-muted">Items Reported</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="icon"><i class="bi bi-people"></i></div>
+                    <div class="number">1000+</div>
+                    <div class="text-muted">Active Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="icon"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="number">500+</div>
+                    <div class="text-muted">Items Returned</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="icon"><i class="bi bi-building"></i></div>
+                    <div class="number">15+</div>
+                    <div class="text-muted">Campus Locations</div>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="mb-4">Browse by Category</h2>
+        <div class="row g-3 mb-5">
+            @foreach (var category in categories)
+            {
+                <div class="col-6 col-md-4 col-lg-2">
+                    <a asp-controller="Items" asp-action="Index" asp-route-CategoryId="@category.Id" class="text-decoration-none">
+                        <div class="card text-center p-3">
+                            <i class="bi @category.IconClass fs-1 text-primary mb-2"></i>
+                            <h6 class="mb-1">@category.Name</h6>
+                            <small class="text-muted">@category.ItemCount items</small>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Recently Reported Items</h2>
+            <a asp-controller="Items" asp-action="Index" class="btn btn-outline-primary">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        @if (Model != null && Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card item-card h-100">
+                            @if (!string.IsNullOrEmpty(item.PrimaryImagePath))
+                            {
+                                <img src="@item.PrimaryImagePath" alt="@item.Title" class="item-image">
+                            }
+                            else
+                            {
+                                <div class="item-placeholder">
+                                    <i class="bi @item.CategoryIcon"></i>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge @(item.ItemType == ItemType.Lost ? "badge-lost" : "badge-found")">
+                                        @item.ItemType.ToString()
+                                    </span>
+                                    @if (item.IsVerified)
+                                    {
+                                        <i class="bi bi-patch-check-fill verified-badge" title="Verified"></i>
+                                    }
+                                </div>
+                                <h5 class="card-title">@item.Title</h5>
+                                <p class="card-text text-muted small">
+                                    <i class="bi bi-geo-alt me-1"></i>@item.LocationName
+                                </p>
+                                <p class="card-text text-muted small">
+                                    <i class="bi bi-calendar me-1"></i>@item.DateOccurred.ToString("MMM dd, yyyy")
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No items reported yet. Be the first to report!</p>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="bg-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h2 class="mb-4">How It Works</h2>
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">1</span>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h5>Report</h5>
+                        <p class="text-muted mb-0">Lost or found something? Create a report with details and photos.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">2</span>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h5>Search &amp; Match</h5>
+                        <p class="text-muted mb-0">Browse listings or get notified when a match is found.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">3</span>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h5>Claim &amp; Verify</h5>
+                        <p class="text-muted mb-0">Submit a claim with proof of ownership for verification.</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h5>Reunite</h5>
+                        <p class="text-muted mb-0">Pick up your item from the Lost and Found office!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-center mt-4 mt-md-0">
+                <i class="bi bi-search-heart display-1 text-primary" style="font-size: 12rem; opacity: 0.1;"></i>
+            </div>
+        </div>
+    </div>
+</section>
