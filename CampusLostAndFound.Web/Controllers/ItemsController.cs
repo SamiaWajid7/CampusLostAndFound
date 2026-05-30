@@ -4,6 +4,7 @@ using System.Security.Claims;
 using CampusLostAndFound.Web.Models.DTOs;
 using CampusLostAndFound.Web.Models.Enums;
 using CampusLostAndFound.Web.Services;
+using CampusLostAndFound.Web.Data;
 
 namespace CampusLostAndFound.Web.Controllers;
 
@@ -13,19 +14,22 @@ public class ItemsController : Controller
     private readonly ICategoryService _categoryService;
     private readonly ILocationService _locationService;
     private readonly IFileService _fileService;
-    
+    private readonly ApplicationDbContext _context;
+
     public ItemsController(
-        IItemService itemService,
-        ICategoryService categoryService,
-        ILocationService locationService,
-        IFileService fileService)
+     IItemService itemService,
+     ICategoryService categoryService,
+     ILocationService locationService,
+     IFileService fileService,
+     ApplicationDbContext context)
     {
         _itemService = itemService;
         _categoryService = categoryService;
         _locationService = locationService;
         _fileService = fileService;
+        _context = context;
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> Index([FromQuery] ItemSearchDto search)
     {
@@ -121,15 +125,18 @@ public class ItemsController : Controller
             ViewData["Locations"] = locations;
             return View(model);
         }
-        
+
         var item = await _itemService.CreateItemAsync(model, userId);
-        
+
         // Save images if provided
         if (images != null && images.Any())
         {
-            await _fileService.SaveImagesAsync(images, item.Id);
+            var imageEntities = await _fileService.SaveImagesAsync(images, item.Id);
+
+            _context.ItemImages.AddRange(imageEntities);
+            await _context.SaveChangesAsync();
         }
-        
+
         TempData["SuccessMessage"] = $"Your {model.ItemType.ToString().ToLower()} item has been reported successfully!";
         return RedirectToAction("Details", new { id = item.Id });
     }
